@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Módulo de Configuración de Auditoría</h2>
+<hr>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('vista_configuracion') }}" class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="tabla" class="col-form-label fw-bold">Seleccionar Tabla:</label>
+            </div>
+            <div class="col-auto">
+                <select name="tabla" id="tabla" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Elija una tabla --</option>
+                    {% for t in tablas %}
+                        <option value="{{ t.table_name }}" {% if t.table_name == tabla_seleccionada %}selected{% endif %}>
+                            {{ t.table_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if tabla_seleccionada and columnas %}
+<form method="POST" action="{{ url_for('guardar_configuracion') }}">
+    <input type="hidden" name="tabla" value="{{ tabla_seleccionada }}">
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white fw-bold">
+            Granularidad de Auditoría: Tabla "{{ tabla_seleccionada }}"
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Columna</th>
+                        <th>Tipo de Dato</th>
+                        <th class="text-center">INSERT</th>
+                        <th class="text-center">UPDATE</th>
+                        <th class="text-center">DELETE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col in columnas %}
+                    <tr>
+                        <td class="fw-bold">{{ col.column_name }}</td>
+                        <td><code>{{ col.data_type }}</code></td>
+                        <td class="text-center">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="check_{{ col.column_name }}_INSERT"
+                                   {% if config_actual.get(col.column_name + '_INSERT', False) %}checked{% endif %}>
+                        </td>
+                        <td class="text-center">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="check_{{ col.column_name }}_UPDATE"
+                                   {% if config_actual.get(col.column_name + '_UPDATE', False) %}checked{% endif %}>
+                        </td>
+                        <td class="text-center">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="check_{{ col.column_name }}_DELETE"
+                                   {% if config_actual.get(col.column_name + '_DELETE', False) %}checked{% endif %}>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <button type="submit" class="btn btn-success fw-bold">
+                💾 Guardar Configuración y Regenerar Trigger
+            </button>
+        </div>
+    </div>
+</form>
+{% endif %}
+{% endblock %}

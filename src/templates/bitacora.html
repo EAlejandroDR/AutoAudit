@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Módulo de Consulta Histórica de Bitácora</h2>
+<hr>
+
+<form method="GET" action="{{ url_for('vista_bitacora') }}" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="usuario" class="form-control" placeholder="Filtrar por Usuario..." value="{{ usuario_filtro }}">
+    </div>
+    <div class="col-md-4">
+        <input type="text" name="columna" class="form-control" placeholder="Filtrar por Columna..." value="{{ columna_filtro }}">
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+        <a href="{{ url_for('vista_bitacora') }}" class="btn btn-secondary">Limpiar</a>
+        <a href="{{ url_for('exportar_csv', usuario=usuario_filtro, columna=columna_filtro) }}" class="btn btn-success">
+    📥 Exportar a CSV
+</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped table-bordered text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tabla / Columna</th>
+                <th>Operación</th>
+                <th>Valor Anterior</th>
+                <th>Valor Nuevo</th>
+                <th>Usuario</th>
+                <th>IP Origen</th>
+                <th>Fecha y Hora</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in registros %}
+            <tr>
+                <td>{{ r.id_bitacora }}</td>
+                <td><code>{{ r.tabla_nombre }}.{{ r.columna_nombre }}</code></td>
+                <td>
+                    {% if r.tipo_operacion == 'INSERT' %}
+                        <span class="badge bg-success">INSERT</span>
+                    {% elif r.tipo_operacion == 'UPDATE' %}
+                        <span class="badge bg-warning text-dark">UPDATE</span>
+                    {% else %}
+                        <span class="badge bg-danger">DELETE</span>
+                    {% endif %}
+                </td>
+                <td class="text-danger">{% if r.valor_anterior %}{{ r.valor_anterior }}{% else %}<em>NULL</em>{% endif %}</td>
+                <td class="text-success">{% if r.valor_nuevo %}{{ r.valor_nuevo }}{% else %}<em>NULL</em>{% endif %}</td>
+                <td><strong>{{ r.usuario_bd }}</strong></td>
+                <td>{{ r.ip_origen or '127.0.0.1' }}</td>
+                <td><small>{{ r.fecha_hora.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center text-muted">No se encontraron registros de auditoría.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
